@@ -29,8 +29,8 @@ const Login = (props) => {
 //   const [emailIsValid, setEmailIsValid] = useState();
   const[enteredcollegeName,setEnteredcollegeName]=useState("");
   const[collegeIsValid,SetCollegeIsValid]=useState();
-  const [enteredPassword, setEnteredPassword] = useState("");
-  const [passwordIsValid, setPasswordIsValid] = useState();
+//   const [enteredPassword, setEnteredPassword] = useState("");
+//   const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
 
   const [emailState,dispatchEmail]=useReducer(emailReducer, {
@@ -43,6 +43,8 @@ const [passwordState,dispatchPassword]=useReducer(passReduce,{
     isValid:null
 })
   
+const {isValid:emailIsValid}=emailState;
+const {isValid:passwordIsValid}=passwordState;
   useEffect(()=>{
     console.log("Effect running");
     return(()=>{
@@ -50,33 +52,33 @@ const [passwordState,dispatchPassword]=useReducer(passReduce,{
     })
   },[])
 
-//   useEffect(() => {
-//     const identifier=setTimeout(()=>{
-//         console.log("checking form validity")
-//         setFormIsValid(
-//             enteredEmail.includes("@") && enteredPassword.trim().length > 6 && enteredcollegeName.trim().length>4
-//           );
-//     },500)
-//     return ()=>{
-//         console.log("CleanUp");
-//         clearTimeout(identifier);
-//     }
-//   }, [enteredEmail,enteredPassword,enteredcollegeName]);
+  useEffect(() => {
+    const identifier=setTimeout(()=>{
+        console.log("checking form validity")
+        setFormIsValid(
+          emailIsValid && passwordIsValid  && enteredcollegeName.trim().length>4
+          );
+    },500)
+    return ()=>{
+        console.log("CleanUp");
+        clearTimeout(identifier);
+    }
+  }, [emailIsValid,passwordIsValid,enteredcollegeName]);
 
   const emailChangeHandler = (event) => {
     // setEnteredEmail(event.target.value);
     dispatchEmail({type:"User_Input",val:event.target.value})
-    setFormIsValid(
-        event.target.value.includes("@") && passwordState.isValid && enteredcollegeName.trim().length>4
-            );
+    // setFormIsValid(
+    //     event.target.value.includes("@") && passwordState.isValid && enteredcollegeName.trim().length>4
+    //         );
   };
 
   const passwordChangeHandler = (event) => {
     // setEnteredPassword(event.target.value);
     dispatchPassword({type:"User_Input",val:event.target.value})
-    setFormIsValid(
-        emailState.value.includes("@") && event.target.value.trim().length > 6 && enteredcollegeName.trim().length>4
-        );
+    // setFormIsValid(
+    //     emailState.value.includes("@") && event.target.value.trim().length > 6 && enteredcollegeName.trim().length>4
+    //     );
   };
   const collegeChangeHandler=(event)=>{
     setEnteredcollegeName(event.target.value);
