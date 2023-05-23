@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer, useContext } from "react";
+import React, { useState, useEffect, useReducer, useContext,useRef } from "react";
 
 import Card from "../UI/Card/Card";
 import classes from "./Login.module.css";
@@ -26,11 +26,21 @@ const passReduce=(state,action)=>{
     return {value:"", isValid:false}
 }
 
+const collgReduce=(state,action)=>{
+    if(action.type==="User_Input"){
+        return {value: action.val, isValid:action.val.trim().length > 4}
+    }
+    if(action.type==="Input_Blur"){
+        return {value:state.value,isValid:state.value.trim().length > 4}
+    }
+    return {value:"", isValid:false}
+}
+
 const Login = (props) => {
 //   const [enteredEmail, setEnteredEmail] = useState("");
 //   const [emailIsValid, setEmailIsValid] = useState();
-  const[enteredcollegeName,setEnteredcollegeName]=useState("");
-  const[collegeIsValid,SetCollegeIsValid]=useState();
+//   const[enteredcollegeName,setEnteredcollegeName]=useState("");
+//   const[collegeIsValid,SetCollegeIsValid]=useState();
 //   const [enteredPassword, setEnteredPassword] = useState("");
 //   const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
@@ -45,10 +55,21 @@ const [passwordState,dispatchPassword]=useReducer(passReduce,{
     isValid:null
 })
 
+const [collgState,dispatchCollege]=useReducer(collgReduce,{
+    value:"", 
+    isValid:null
+})
+
+
 const authctx=useContext(AuthContext);
+
+const emailInputRef=useRef();
+const passwordInputRef=useRef();
+const collgInputRef=useRef();
   
 const {isValid:emailIsValid}=emailState;
 const {isValid:passwordIsValid}=passwordState;
+const {isValid:collegeIsValid}=collgState;
   useEffect(()=>{
     console.log("Effect running");
     return(()=>{
@@ -60,14 +81,14 @@ const {isValid:passwordIsValid}=passwordState;
     const identifier=setTimeout(()=>{
         console.log("checking form validity")
         setFormIsValid(
-          emailIsValid && passwordIsValid  && enteredcollegeName.trim().length>4
+          emailIsValid && passwordIsValid  && collegeIsValid
           );
     },500)
     return ()=>{
         console.log("CleanUp");
         clearTimeout(identifier);
     }
-  }, [emailIsValid,passwordIsValid,enteredcollegeName]);
+  }, [emailIsValid,passwordIsValid,collegeIsValid]);
 
   const emailChangeHandler = (event) => {
     // setEnteredEmail(event.target.value);
@@ -85,7 +106,8 @@ const {isValid:passwordIsValid}=passwordState;
     //     );
   };
   const collegeChangeHandler=(event)=>{
-    setEnteredcollegeName(event.target.value);
+    // setEnteredcollegeName(event.target.value);
+    dispatchCollege({type:"User_Input",val:event.target.value})
   }
 
   const validateEmailHandler = () => {
@@ -98,19 +120,30 @@ const {isValid:passwordIsValid}=passwordState;
     dispatchPassword({type:"Input_Blur"})
   };
   const validateCollegeHandler=()=>{
-    SetCollegeIsValid(enteredcollegeName.trim().length >4)
+    dispatchCollege({type:"Input_Blur"})
   }
 
 
   const submitHandler = (event) => {
     event.preventDefault();
-    authctx.onLogin(emailState.value, passwordState.value,enteredcollegeName);
+    if(formIsValid){
+    authctx.onLogin(emailState.value, passwordState.value,collgState.value);
+    }else if(!emailIsValid){
+        emailInputRef.current.focus();
+    }else if(!collegeIsValid){
+        collgInputRef.current.focus()
+    }
+    else{
+        passwordInputRef.current.focus();
+    }
   };
 
   return (
     <Card className={classes.login}>
       <form onSubmit={submitHandler}>
-        <Input id="email" 
+        <Input 
+        ref={emailInputRef}
+        id="email" 
         label="E-Mail" 
         type="email" 
         isValid={emailIsValid}
@@ -118,16 +151,20 @@ const {isValid:passwordIsValid}=passwordState;
         onChange={emailChangeHandler}
         onBlur={validateEmailHandler}/>
 
-        <Input id="college" 
+        <Input
+        ref={collgInputRef}
+        id="college" 
         label="College-Name" 
         type="college" 
         isValid={collegeIsValid}
-        value={passwordState.value}
+        value={collgState.value}
         onChange={collegeChangeHandler}
         onBlur={validateCollegeHandler}/>
         
         
-        <Input id="password" 
+        <Input 
+        ref={passwordInputRef}
+        id="password" 
         label="Password" 
         type="password" 
         isValid={passwordIsValid}
@@ -137,7 +174,7 @@ const {isValid:passwordIsValid}=passwordState;
         
         
         <div className={classes.actions}>
-          <Button type="submit" className={classes.btn} disabled={!formIsValid}>
+          <Button type="submit" className={classes.btn} >
             Login
           </Button>
         </div>
